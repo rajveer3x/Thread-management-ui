@@ -117,3 +117,4 @@ examples/
 2. The **scheduler** lives in a `thread_local` and maintains a FIFO ready queue.
 3. `thread_yield` / `thread_join` / `mutex_lock` call into the scheduler, which uses `swapcontext` to switch to the next ready thread.
 4. Mutexes are cooperative — a blocked thread is marked `Blocked` and removed from the run queue until the current owner calls `mutex_unlock`.
+
