@@ -132,6 +132,18 @@ We are currently building a real-time visualization dashboard to monitor threads
 **Phase 2: Node.js Data Bridge**
 The `ui-bridge/bridge.js` acts as the middleware. It spawns the Rust binary (`cargo run --example showcase`), captures `stdout`, parses the terminal strings via regex into structured JSON, and broadcasts them over Socket.io on port 3001.
 
+**Phase 3: State Management**
+The Next.js app maintains local React state variables (`activeThread`, `readyQueue`, `blockedQueue`, `terminalLogs`) that mirror the internal Rust POSIX ucontext scheduler. It listens to the `os_event` Socket.io channel on `http://localhost:3001`, parsing and reducing incoming structured state updates directly into the UI state in real-time.
+
+**Phase 4: Frontend UI**
+The Dashboard now features a highly polished, responsive dark-mode UI powered by Tailwind CSS. Visual segregation separates the **CPU Execution** zone (which glows when active), a horizontal flex-based **Ready Queue**, a highlighted red **Blocked Queue** for threads halted on cooperative mutex execution, and a scrolling live **Terminal Stream** directly mirroring the Rust backend.
+
+**Phase 5: Simulation Mode**
+A frontend-only mock data generator was integrated to simulate queue state changes. Because the POSIX backend is fundamentally unsupported natively on Windows, this simulation toggle enables accurate, robust testing of the UI state changes (CPU scheduling, yielding, locking) without relying on the Node bridge.
+
+**Phase 6: Polish & Animation**
+Integrated `framer-motion` to provide smooth, kinematic layout animations. As POSIX context switches occur, threads physically glide across the screen between the Active CPU, Ready, and Blocked queues. The underlying simulation state logic was heavily hardened to strictly enforce mutual exclusivity across the queues.
+
 **How to run the UI (Development):**
 
 1. **Start the Node.js Bridge:**
