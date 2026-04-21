@@ -118,3 +118,31 @@ examples/
 3. `thread_yield` / `thread_join` / `mutex_lock` call into the scheduler, which uses `swapcontext` to switch to the next ready thread.
 4. Mutexes are cooperative — a blocked thread is marked `Blocked` and removed from the run queue until the current owner calls `mutex_unlock`.
 
+---
+
+## Web UI Dashboard (WIP)
+
+We are currently building a real-time visualization dashboard to monitor threads and scheduling events.
+
+**Architecture:**
+- **Rust Core**: Unmodified, produces standard output logs.
+- **Node.js Bridge (`ui-bridge/`)**: Spawns the Rust process, parses its output, and broadcasts state via WebSocket.
+- **Next.js Dashboard (`dashboard/`)**: The frontend UI for visualization.
+
+**Phase 2: Node.js Data Bridge**
+The `ui-bridge/bridge.js` acts as the middleware. It spawns the Rust binary (`cargo run --example showcase`), captures `stdout`, parses the terminal strings via regex into structured JSON, and broadcasts them over Socket.io on port 3001.
+
+**How to run the UI (Development):**
+
+1. **Start the Node.js Bridge:**
+   ```bash
+   cd ui-bridge
+   node bridge.js
+   ```
+
+2. **Start the Next.js Dashboard:**
+   ```bash
+   cd dashboard
+   npm run dev
+   ```
+
