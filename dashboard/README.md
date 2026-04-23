@@ -34,3 +34,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Architecture Notes
+
+In Phase 7, the frontend architecture was refactored into reusable components (`ThreadCard`, `TerminalStream`) for cleaner separation of concerns. Additionally, a Telemetry Header was added for better observability of the simulation's queues and CPU state.
