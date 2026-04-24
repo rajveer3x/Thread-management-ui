@@ -181,7 +181,7 @@ export default function Dashboard() {
                 value={numThreadsInput}
                 onChange={(e) => setNumThreadsInput(e.target.value)}
                 disabled={isSimulating}
-                className="w-14 bg-slate-800/50 border border-slate-700 rounded px-1.5 py-0.5 text-sm text-center text-slate-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50"
+                className="w-20 bg-slate-800/50 border border-slate-700 rounded px-2 py-1 text-base font-medium text-center text-slate-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50 transition-all"
               />
             </div>
             {/* Error Message */}
