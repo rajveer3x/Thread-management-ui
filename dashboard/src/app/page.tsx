@@ -22,7 +22,8 @@ export default function Dashboard() {
   // === Simulation Mode ===
   const [isSimulating, setIsSimulating] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1);
-  const simStateRef = useRef({ active: null as string | null, ready: [] as string[], blocked: [] as string[] });
+  const [numThreadsInput, setNumThreadsInput] = useState('3');
+  const simStateRef = useRef({ active: null as string | null, ready: [] as string[], blocked: [] as string[], totalThreads: 0 });
 
   // Centralized dispatcher for state reduction (Used by actual WebSockets)
   const dispatchOsEvent = useCallback((event: OsEvent) => {
@@ -80,18 +81,20 @@ export default function Dashboard() {
   useEffect(() => {
     if (!isSimulating) return;
 
-    // Initialization: Seed UI with 15 concurrent threads
+    // Initialization: Seed UI with configured concurrent threads
     if (simStateRef.current.ready.length === 0 && !simStateRef.current.active && simStateRef.current.blocked.length === 0) {
+      const initialThreads = parseInt(numThreadsInput, 10) || 3;
       simStateRef.current = {
         active: null,
-        ready: Array.from({ length: 15 }, (_, i) => String(i + 1)),
-        blocked: []
+        ready: Array.from({ length: initialThreads }, (_, i) => String(i + 1)),
+        blocked: [],
+        totalThreads: initialThreads
       };
       
       setActiveThread(null);
       setBlockedQueue([]);
       setReadyQueue([...simStateRef.current.ready]);
-      setTerminalLogs(prev => [...prev, '[Simulator] Initialized high-volume load test with 15 threads.']);
+      setTerminalLogs(prev => [...prev, `[Simulator] Initialized high-volume load test with ${initialThreads} threads.`]);
     }
 
     const interval = setInterval(() => {
@@ -141,7 +144,7 @@ export default function Dashboard() {
         state.active = nextActive;
         newLogs.push(`[thread ${nextActive}] swapped into CPU...`);
       } else if (needsNewActive && state.ready.length === 0 && state.blocked.length === 0) {
-        newLogs.push(`[Simulator] All 15 threads exited. Halting load test.`);
+        newLogs.push(`[Simulator] All ${state.totalThreads} threads exited. Halting load test.`);
         setIsSimulating(false);
       }
 
@@ -160,7 +163,7 @@ export default function Dashboard() {
     }, 800 / simSpeed);
 
     return () => clearInterval(interval);
-  }, [isSimulating, simSpeed]);
+  }, [isSimulating, simSpeed, numThreadsInput]);
 
   return (
     <div className="bg-[#0B0F19] text-slate-300 min-h-screen p-8 font-sans overflow-x-hidden">
@@ -168,6 +171,31 @@ export default function Dashboard() {
         <h1 className="text-4xl font-extrabold text-slate-100 tracking-tight mb-4 md:mb-0">uthreads<span className="text-slate-500 font-light ml-2">Visualizer</span></h1>
         
         <div className="flex items-center gap-4">
+          <div className="relative flex flex-col justify-center">
+            <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/50">
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest whitespace-nowrap">Number of Threads:</label>
+              <input 
+                type="number" 
+                min="1" 
+                max="20" 
+                value={numThreadsInput}
+                onChange={(e) => setNumThreadsInput(e.target.value)}
+                disabled={isSimulating}
+                className="w-14 bg-slate-800/50 border border-slate-700 rounded px-1.5 py-0.5 text-sm text-center text-slate-200 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50"
+              />
+            </div>
+            {/* Error Message */}
+            {(() => {
+              const parsed = parseInt(numThreadsInput, 10);
+              const isInvalid = numThreadsInput.trim() === '' || isNaN(parsed) || parsed < 1 || parsed > 20;
+              if (isInvalid && !isSimulating) {
+                const errorMsg = numThreadsInput.trim() === '' ? 'Required' : isNaN(parsed) ? 'Invalid' : parsed < 1 ? 'Min: 1' : 'Max: 20';
+                return <span className="absolute -bottom-5 left-1 text-[10px] text-rose-400 font-bold uppercase tracking-wider">{errorMsg}</span>;
+              }
+              return null;
+            })()}
+          </div>
+
           <div className="flex items-center gap-2 bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-800/50">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">Speed:</span>
             {[0.5, 1, 2].map(speed => (
@@ -183,7 +211,8 @@ export default function Dashboard() {
 
           <button 
             onClick={() => setIsSimulating(!isSimulating)}
-            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold tracking-wide rounded-lg transition-all duration-300 ${
+            disabled={!isSimulating && (numThreadsInput.trim() === '' || isNaN(parseInt(numThreadsInput, 10)) || parseInt(numThreadsInput, 10) < 1 || parseInt(numThreadsInput, 10) > 20)}
+            className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold tracking-wide rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
               isSimulating 
                 ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30' 
                 : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
