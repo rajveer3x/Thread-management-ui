@@ -101,6 +101,17 @@ export default function Dashboard() {
       let state = simStateRef.current;
       let newLogs: string[] = [];
 
+      if (!state.active && state.ready.length === 0 && state.blocked.length > 0) {
+        state.ready = [...state.blocked];
+        state.blocked = [];
+        newLogs.push("[system] Deadlock detected. Force releasing mutexes...");
+      }
+
+      if (!state.active && state.ready.length === 0 && state.blocked.length === 0) {
+        newLogs.push("[system] All threads terminated. CPU halting.");
+        setIsSimulating(false);
+      }
+
       // Phase A: Unblock
       if (state.blocked.length > 0) {
         const numToUnblock = Math.floor(Math.random() * 3);
@@ -143,9 +154,6 @@ export default function Dashboard() {
         const nextActive = state.ready.shift()!;
         state.active = nextActive;
         newLogs.push(`[thread ${nextActive}] swapped into CPU...`);
-      } else if (needsNewActive && state.ready.length === 0 && state.blocked.length === 0) {
-        newLogs.push(`[Simulator] All ${state.totalThreads} threads exited. Halting load test.`);
-        setIsSimulating(false);
       }
 
       // Flush to actual React UI States
